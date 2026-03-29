@@ -89,7 +89,7 @@ struct OnboardingFlowView: View {
             pauseIcon(size: 64, cornerRadius: 16, barWidth: 7, barHeight: 26, barSpacing: 8)
 
             Text("Find your pause.")
-                .font(.largeTitle)
+                .font(.system(size: 42))
                 .fontWeight(.semibold)
                 .tracking(-1)
                 .foregroundStyle(.white)
@@ -105,7 +105,8 @@ struct OnboardingFlowView: View {
                 Spacer()
                 Button(action: handleFinishSetup) {
                     Text("Finish setup")
-                        .font(.headline)
+                        .font(.body)
+                        .fontWeight(.medium)
                         .foregroundStyle(.black)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
@@ -147,7 +148,7 @@ struct OnboardingFlowView: View {
 
                 Text("Work/break duration setup")
                     .font(.title2)
-                    .fontWeight(.semibold)
+                    .fontWeight(.medium)
                     .foregroundStyle(.white)
             }
 
@@ -254,7 +255,11 @@ struct OnboardingFlowView: View {
                             .shadow(color: .white.opacity(0.15), radius: 8)
                     } else {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .modifier(GlassChipModifier(cornerRadius: 14))
+                            .fill(.white.opacity(0.12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .strokeBorder(.white.opacity(0.25), lineWidth: 0.75)
+                            )
                     }
                 }
         }
@@ -267,7 +272,7 @@ struct OnboardingFlowView: View {
             pauseIcon(size: 64, cornerRadius: 16, barWidth: 7, barHeight: 26, barSpacing: 8)
 
             Text("You're all set!")
-                .font(.largeTitle)
+                .font(.system(size: 42))
                 .fontWeight(.semibold)
                 .tracking(-1)
                 .foregroundStyle(.white)
