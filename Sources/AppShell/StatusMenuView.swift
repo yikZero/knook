@@ -128,7 +128,7 @@ private struct PopoverMenuRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isHovered ? .white : .primary)
+        .foregroundStyle(isHovered ? .white : .black)
         .background(isHovered ? Color.accentColor : .clear)
         .clipShape(MenuRowShape(topRadius: 4, bottomRadius: isLast ? 12 : 4))
         .onHover { isHovered = $0 }

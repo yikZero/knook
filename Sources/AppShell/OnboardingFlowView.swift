@@ -244,7 +244,7 @@ struct OnboardingFlowView: View {
                 .font(.body)
                 .fontWeight(.medium)
                 .monospacedDigit()
-                .foregroundStyle(isSelected ? .black : .white.opacity(0.85))
+                .foregroundStyle(isSelected ? .black : .white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
                 .background {
@@ -348,10 +348,10 @@ private struct GlassChipModifier: ViewModifier {
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(.white.opacity(0.1))
+                    .fill(.white.opacity(0.15))
                     .background(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .fill(.ultraThinMaterial)
+                            .fill(.thinMaterial)
                             .environment(\.colorScheme, .dark)
                     )
             )
