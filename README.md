@@ -62,10 +62,17 @@ Once the preview tap is published, install with:
 
 ```bash
 brew tap preetsuthar17/tap
-brew install --cask knook
+brew install --cask --no-quarantine knook
 ```
 
-Because preview builds are not notarized yet, macOS may block the first launch. If that happens, open `/Applications/knook.app` once via Finder with right-click -> `Open`, then confirm the prompt.
+Because preview builds are not notarized yet, standard quarantined installs can show a misleading "knook is damaged" dialog. The preview-safe install path is `--no-quarantine`.
+
+If you already installed the app and hit that dialog, clear quarantine manually:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/knook.app
+open /Applications/knook.app
+```
 
 ### Source build
 
