@@ -274,9 +274,10 @@ final class GitHubReleaseUpdateManager: UpdateManaging {
         let runner = brewUpdateRunner
         let stateSubject = stateSubject
         let externalHandler = externalHandler
+        let targetVersion = GitHubReleaseUpdateManager.normalizedVersion(availableRelease.version)
 
         installTask = Task { @MainActor in
-            let result = await runner.runUpdate(brewPath: brewPath) { step in
+            let result = await runner.runUpdate(brewPath: brewPath, expectedVersion: targetVersion) { step in
                 stateSubject.send(.installingProgress(step: step))
             }
 

@@ -47,6 +47,7 @@ final class GitHubReleaseUpdateManagerTests: XCTestCase {
 
         func runUpdate(
             brewPath: String,
+            expectedVersion: String,
             onProgress: @Sendable @MainActor (String) -> Void
         ) async -> BrewUpdateResult {
             await onProgress("Testing…")

@@ -8,6 +8,7 @@ enum BrewUpdateResult: Sendable {
 protocol BrewUpdateRunning: Sendable {
     func runUpdate(
         brewPath: String,
+        expectedVersion: String,
         onProgress: @Sendable @MainActor (String) -> Void
     ) async -> BrewUpdateResult
 }
@@ -15,6 +16,7 @@ protocol BrewUpdateRunning: Sendable {
 struct BrewUpdateRunner: BrewUpdateRunning {
     func runUpdate(
         brewPath: String,
+        expectedVersion: String,
         onProgress: @Sendable @MainActor (String) -> Void
     ) async -> BrewUpdateResult {
         var fullLog = ""
@@ -47,6 +49,23 @@ struct BrewUpdateRunner: BrewUpdateRunning {
             if installResult.exitCode != 0 {
                 return .failure(step: "Installing knook…", log: fullLog)
             }
+        }
+
+        // Verify the installed version matches what we expected
+        await onProgress("Verifying update…")
+        let infoResult = runProcess(executablePath: brewPath, arguments: ["list", "--cask", "--versions", "knook"])
+        fullLog += "=== Verifying update… [list --cask --versions knook] ===\n\(infoResult.output)\n"
+
+        let installedVersion = infoResult.output
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: .whitespaces)
+            .last ?? ""
+
+        if installedVersion != expectedVersion {
+            return .failure(
+                step: "Verifying update…",
+                log: fullLog + "\nExpected version \(expectedVersion) but found \(installedVersion)."
+            )
         }
 
         return .success(log: fullLog)
