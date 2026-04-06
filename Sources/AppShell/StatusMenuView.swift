@@ -164,6 +164,17 @@ struct StatusMenuView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
 
+            HStack(spacing: 12) {
+                Label("\(model.breakStats.todayCount()) today", systemImage: "cup.and.saucer")
+                if model.breakStats.currentStreak > 0 {
+                    Label("\(model.breakStats.currentStreak)-day streak", systemImage: "flame")
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 12)
+            .padding(.bottom, 4)
+
             Divider().padding(.vertical, 4)
 
             PopoverMenuRow(title: "Start Break Now", systemImage: "cup.and.saucer") {

@@ -16,6 +16,7 @@ final class AppModel: ObservableObject {
     @Published var updateState: UpdateState
     @Published var settingsError: String?
     @Published var pendingWellnessEvent: WellnessReminderEvent?
+    @Published var breakStats: BreakStatsData = .empty
 
     private let scheduler: BreakScheduler
     private let wellnessReminderEngine: WellnessReminderEngine
@@ -28,6 +29,7 @@ final class AppModel: ObservableObject {
     private let microphonePauseProvider: MicrophoneActivePauseConditionProvider
     private let updateManager: any UpdateManaging
     private let injectedWindowCoordinator: (any WindowCoordinator)?
+    private let breakStatsStore: BreakStatsStore
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "knook", category: "Timer")
 
     private var timerCancellable: AnyCancellable?
@@ -95,6 +97,8 @@ final class AppModel: ObservableObject {
         self.microphonePauseProvider = MicrophoneActivePauseConditionProvider()
         self.updateManager = updateManager ?? NullUpdateManager()
         self.injectedWindowCoordinator = windowCoordinator
+        self.breakStatsStore = BreakStatsStore()
+        self.breakStats = BreakStatsStore().load()
         self.updateState = .idle
 
         scheduler.setPauseProviders(Self.makePauseProviders(
@@ -302,6 +306,10 @@ final class AppModel: ObservableObject {
             playSound(for: settings.breakSettings.selectedSound)
             pendingWellnessEvent = nil
             scheduleNotification(title: breakSession.kind.title, body: breakSession.message)
+        }
+
+        if snapshot.breakJustEnded, let kind = snapshot.completedBreakKind {
+            breakStats = breakStatsStore.recordBreak(kind: kind, on: now)
         }
     }
 

@@ -10,11 +10,13 @@ public final class BreakScheduler: @unchecked Sendable {
         public var state: AppState
         public var breakJustStarted: Bool
         public var breakJustEnded: Bool
+        public var completedBreakKind: BreakKind?
 
-        public init(state: AppState, breakJustStarted: Bool, breakJustEnded: Bool) {
+        public init(state: AppState, breakJustStarted: Bool, breakJustEnded: Bool, completedBreakKind: BreakKind? = nil) {
             self.state = state
             self.breakJustStarted = breakJustStarted
             self.breakJustEnded = breakJustEnded
+            self.completedBreakKind = completedBreakKind
         }
     }
 
@@ -111,8 +113,9 @@ public final class BreakScheduler: @unchecked Sendable {
 
         if let breakSession = activeBreak {
             if now >= breakSession.scheduledEnd {
+                let kind = breakSession.kind
                 completeActiveBreak(at: now)
-                return snapshot(now: now, breakJustStarted: false, breakJustEnded: true)
+                return snapshot(now: now, breakJustStarted: false, breakJustEnded: true, completedBreakKind: kind)
             }
 
             let remaining = breakSession.scheduledEnd.timeIntervalSince(now)
@@ -181,13 +184,14 @@ public final class BreakScheduler: @unchecked Sendable {
     }
 
     public func endBreakEarly(at now: Date) -> Snapshot {
-        guard activeBreak != nil else {
+        guard let breakSession = activeBreak else {
             return snapshot(now: now, breakJustStarted: false, breakJustEnded: false)
         }
 
+        let kind = breakSession.kind
         completeActiveBreak(at: now)
         statusText = "Break ended early"
-        return snapshot(now: now, breakJustStarted: false, breakJustEnded: true)
+        return snapshot(now: now, breakJustStarted: false, breakJustEnded: true, completedBreakKind: kind)
     }
 
     public func pause(reason: String = "Manual Pause", now: Date) -> Snapshot {
@@ -286,7 +290,8 @@ public final class BreakScheduler: @unchecked Sendable {
     private func snapshot(
         now: Date,
         breakJustStarted: Bool,
-        breakJustEnded: Bool
+        breakJustEnded: Bool,
+        completedBreakKind: BreakKind? = nil
     ) -> Snapshot {
         let displayedNextBreakDate = automaticPauseState?.remainingUntilBreak.map {
             now.addingTimeInterval($0)
@@ -302,7 +307,8 @@ public final class BreakScheduler: @unchecked Sendable {
                 statusText: statusText
             ),
             breakJustStarted: breakJustStarted,
-            breakJustEnded: breakJustEnded
+            breakJustEnded: breakJustEnded,
+            completedBreakKind: completedBreakKind
         )
     }
 

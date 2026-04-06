@@ -563,3 +563,52 @@ public extension TimeInterval {
         countdownString
     }
 }
+
+// MARK: - Break Stats
+
+public struct DailyBreakRecord: Codable, Hashable, Sendable {
+    public var date: String
+    public var microBreakCount: Int
+    public var longBreakCount: Int
+
+    public var totalCount: Int { microBreakCount + longBreakCount }
+
+    public init(date: String, microBreakCount: Int = 0, longBreakCount: Int = 0) {
+        self.date = date
+        self.microBreakCount = microBreakCount
+        self.longBreakCount = longBreakCount
+    }
+}
+
+public struct BreakStatsData: Codable, Hashable, Sendable {
+    public var dailyRecords: [DailyBreakRecord]
+    public var currentStreak: Int
+    public var longestStreak: Int
+    public var lastBreakDate: String?
+
+    public init(
+        dailyRecords: [DailyBreakRecord] = [],
+        currentStreak: Int = 0,
+        longestStreak: Int = 0,
+        lastBreakDate: String? = nil
+    ) {
+        self.dailyRecords = dailyRecords
+        self.currentStreak = currentStreak
+        self.longestStreak = longestStreak
+        self.lastBreakDate = lastBreakDate
+    }
+
+    public static let empty = BreakStatsData()
+
+    public func todayCount(on date: Date = Date()) -> Int {
+        let key = Self.dateKey(for: date)
+        return dailyRecords.first { $0.date == key }?.totalCount ?? 0
+    }
+
+    public static func dateKey(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = .current
+        return formatter.string(from: date)
+    }
+}
