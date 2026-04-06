@@ -75,7 +75,7 @@ final class AppModelLaunchTests: XCTestCase {
         XCTAssertEqual(reloadedSettings.onboardingState, originalSettings.onboardingState)
     }
 
-    func testFinishOnboardingFlowPersistsSelectedDurationsAndTransitionsAppToReady() throws {
+    func testFinishOnboardingFlowPersistsPresetAndTransitionsAppToReady() throws {
         let store = try makeStore(with: .default)
         let model = AppModel(
             settingsStore: store,
@@ -84,18 +84,19 @@ final class AppModelLaunchTests: XCTestCase {
             observesSystemEvents: false
         )
 
-        model.finishOnboardingFlow(workInterval: 30 * 60, breakDuration: 25)
+        model.finishOnboardingFlow(preset: .deepWork)
 
         XCTAssertEqual(model.launchPhase, .ready)
         XCTAssertEqual(model.menuBarMode, .active)
         XCTAssertTrue(model.onboardingState.hasCompletedStarterSetup)
 
         let reloadedSettings = try store.load()
-        XCTAssertEqual(reloadedSettings.breakSettings.workInterval, 30 * 60)
-        XCTAssertEqual(reloadedSettings.breakSettings.microBreakDuration, 25)
+        XCTAssertEqual(reloadedSettings.breakSettings.workInterval, 50 * 60)
+        XCTAssertEqual(reloadedSettings.breakSettings.microBreakDuration, 10 * 60)
+        XCTAssertFalse(reloadedSettings.breakSettings.longBreaksEnabled)
     }
 
-    func testDismissStarterSetupWithDefaultsTransitionsAppToReady() throws {
+    func testDismissStarterSetupWithDefaultsUsesEyeCarePreset() throws {
         let store = try makeStore(with: .default)
         let model = AppModel(
             settingsStore: store,
@@ -110,8 +111,9 @@ final class AppModelLaunchTests: XCTestCase {
         XCTAssertEqual(model.menuBarMode, .active)
 
         let reloadedSettings = try store.load()
-        XCTAssertEqual(reloadedSettings.breakSettings.workInterval, BreakSettings.default.workInterval)
-        XCTAssertEqual(reloadedSettings.breakSettings.microBreakDuration, BreakSettings.default.microBreakDuration)
+        XCTAssertEqual(reloadedSettings.breakSettings.workInterval, 20 * 60)
+        XCTAssertEqual(reloadedSettings.breakSettings.microBreakDuration, 20)
+        XCTAssertTrue(reloadedSettings.breakSettings.longBreaksEnabled)
     }
 
     func testHandleAppDidFinishLaunchingPreservesOnboardingStateForFirstRun() throws {

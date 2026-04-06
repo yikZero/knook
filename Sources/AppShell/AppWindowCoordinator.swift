@@ -107,11 +107,8 @@ final class AppWindowCoordinator: WindowCoordinator {
 
     private func showOnboardingFlow() {
         hideAllTransientWindows()
-        onboardingFlowController.show { [weak self] workInterval, breakDuration in
-            self?.model?.finishOnboardingFlow(
-                workInterval: workInterval,
-                breakDuration: breakDuration
-            )
+        onboardingFlowController.show { [weak self] preset in
+            self?.model?.finishOnboardingFlow(preset: preset)
         }
     }
 }

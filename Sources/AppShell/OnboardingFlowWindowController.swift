@@ -1,15 +1,16 @@
 import AppKit
+import Core
 import SwiftUI
 
 @MainActor
 final class OnboardingFlowWindowController {
     private var window: NSWindow?
 
-    func show(onFinish: @escaping @MainActor (TimeInterval, TimeInterval) -> Void) {
+    func show(onFinish: @escaping @MainActor (OnboardingPreset) -> Void) {
         let window = window ?? OverlayWindowHelper.makeFullscreenWindow()
         self.window = window
-        let flowView = OnboardingFlowView { workInterval, breakDuration in
-            onFinish(workInterval, breakDuration)
+        let flowView = OnboardingFlowView { preset in
+            onFinish(preset)
         }
         OverlayWindowHelper.presentOverlay(
             in: window,

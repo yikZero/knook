@@ -159,11 +159,10 @@ final class AppModel: ObservableObject {
         processWellnessReminders(now: now, idleSeconds: idleSeconds)
     }
 
-    func finishOnboardingFlow(workInterval: TimeInterval, breakDuration: TimeInterval) {
+    func finishOnboardingFlow(preset: OnboardingPreset) {
         let now = Date()
 
-        settings.breakSettings.workInterval = workInterval
-        settings.breakSettings.microBreakDuration = breakDuration
+        preset.applyTo(&settings.breakSettings)
         settings.onboardingState = OnboardingState(
             hasCompletedStarterSetup: true,
             completedAt: now,
@@ -291,10 +290,7 @@ final class AppModel: ObservableObject {
     }
 
     func dismissStarterSetupWithDefaults() {
-        finishOnboardingFlow(
-            workInterval: BreakSettings.default.workInterval,
-            breakDuration: BreakSettings.default.microBreakDuration
-        )
+        finishOnboardingFlow(preset: .eyeCare)
     }
 
     private func apply(snapshot: BreakScheduler.Snapshot, now: Date, idleSeconds: TimeInterval) {

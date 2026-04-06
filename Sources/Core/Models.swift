@@ -295,6 +295,63 @@ public struct WellnessReminderEvent: Sendable, Identifiable, Hashable {
     }
 }
 
+public enum OnboardingPreset: String, CaseIterable, Sendable {
+    case eyeCare
+    case deepWork
+    case standingDesk
+
+    public var title: String {
+        switch self {
+        case .eyeCare: "Eye care"
+        case .deepWork: "Deep work"
+        case .standingDesk: "Standing desk"
+        }
+    }
+
+    public var description: String {
+        switch self {
+        case .eyeCare: "20-20-20 rule. Every 20 minutes, look away for 20 seconds."
+        case .deepWork: "50 minutes of focus, then a 10-minute break."
+        case .standingDesk: "Move every 30 minutes with a 5-minute break."
+        }
+    }
+
+    public var subtitle: String {
+        switch self {
+        case .eyeCare: "20 min work, 20 sec break"
+        case .deepWork: "50 min work, 10 min break"
+        case .standingDesk: "30 min work, 5 min break"
+        }
+    }
+
+    public var systemImage: String {
+        switch self {
+        case .eyeCare: "eye"
+        case .deepWork: "brain.head.profile"
+        case .standingDesk: "figure.stand"
+        }
+    }
+
+    public func applyTo(_ settings: inout BreakSettings) {
+        switch self {
+        case .eyeCare:
+            settings.workInterval = 20 * 60
+            settings.microBreakDuration = 20
+            settings.longBreakDuration = 5 * 60
+            settings.longBreaksEnabled = true
+            settings.longBreakCadence = 3
+        case .deepWork:
+            settings.workInterval = 50 * 60
+            settings.microBreakDuration = 10 * 60
+            settings.longBreaksEnabled = false
+        case .standingDesk:
+            settings.workInterval = 30 * 60
+            settings.microBreakDuration = 5 * 60
+            settings.longBreaksEnabled = false
+        }
+    }
+}
+
 public struct OnboardingState: Codable, Hashable, Sendable {
     public var hasCompletedStarterSetup: Bool
     public var completedAt: Date?

@@ -1,4 +1,5 @@
 import ConfettiSwiftUI
+import Core
 import SwiftUI
 
 enum OnboardingStep: Equatable {
@@ -13,14 +14,10 @@ struct OnboardingFlowView: View {
     @State private var setupVisible = false
     @State private var completeVisible = false
     @State private var confettiTrigger = 0
-    @State private var workMinutes: Int = 30
-    @State private var breakSeconds: Int = 45
+    @State private var selectedPreset: OnboardingPreset = .eyeCare
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    let onFinish: (TimeInterval, TimeInterval) -> Void
-
-    private let workOptions = [15, 30, 45, 60]
-    private let breakOptions = [15, 30, 45, 60]
+    let onFinish: (OnboardingPreset) -> Void
 
     private var enterSpring: Animation {
         reduceMotion ? .linear(duration: 0) : .spring(duration: 0.45, bounce: 0.08)
@@ -98,29 +95,13 @@ struct OnboardingFlowView: View {
 
     private var durationSetupContent: some View {
         VStack(spacing: 0) {
-            card
+            presetSelectionCard
                 .frame(maxWidth: 580)
-
-            HStack {
-                Spacer()
-                Button(action: handleFinishSetup) {
-                    Text("Finish setup")
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 32)
-                        .padding(.vertical, 12)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-                }
-                .buttonStyle(ScaleButtonStyle())
-                .pointerCursor()
-            }
-            .frame(maxWidth: 580)
-            .padding(.top, 20)
         }
     }
 
-    private func handleFinishSetup() {
+    private func handleFinishSetup(_ preset: OnboardingPreset) {
+        selectedPreset = preset
         Task { @MainActor in
             withAnimation(exitCurve) {
                 setupVisible = false
@@ -134,134 +115,67 @@ struct OnboardingFlowView: View {
             try? await Task.sleep(for: .milliseconds(200))
             confettiTrigger += 1
             try? await Task.sleep(for: .seconds(2.5))
-            onFinish(
-                TimeInterval(workMinutes * 60),
-                TimeInterval(breakSeconds)
-            )
+            onFinish(preset)
         }
     }
 
-    private var card: some View {
+    private var presetSelectionCard: some View {
         VStack(alignment: .leading, spacing: 28) {
             HStack(spacing: 14) {
                 pauseIcon(size: 44, cornerRadius: 10, barWidth: 6, barHeight: 20, barSpacing: 6)
 
-                Text("Work/break duration setup")
+                Text("Choose your rhythm")
                     .font(.title2)
                     .fontWeight(.medium)
                     .foregroundStyle(.white)
             }
 
-            HStack(alignment: .top, spacing: 40) {
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("Work mode duration")
-                        .font(.callout)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white.opacity(0.8))
+            Text("Pick a preset to get started. You can customize later in settings.")
+                .font(.callout)
+                .foregroundStyle(.white.opacity(0.7))
 
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: 10),
-                        GridItem(.flexible(), spacing: 10)
-                    ], spacing: 10) {
-                        ForEach(workOptions, id: \.self) { minutes in
-                            chip(
-                                label: "\(minutes) min",
-                                isSelected: workMinutes == minutes
-                            ) {
-                                withAnimation(chipAnimation) {
-                                    workMinutes = minutes
-                                }
-                            }
-                        }
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("Break duration")
-                        .font(.callout)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white.opacity(0.8))
-
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: 10),
-                        GridItem(.flexible(), spacing: 10)
-                    ], spacing: 10) {
-                        ForEach(breakOptions, id: \.self) { seconds in
-                            chip(
-                                label: "\(seconds) sec",
-                                isSelected: breakSeconds == seconds
-                            ) {
-                                withAnimation(chipAnimation) {
-                                    breakSeconds = seconds
-                                }
-                            }
-                        }
-                    }
+            VStack(spacing: 12) {
+                ForEach(OnboardingPreset.allCases, id: \.rawValue) { preset in
+                    presetRow(preset)
                 }
             }
-
-            Button {
-                Task { @MainActor in
-                    withAnimation(exitCurve) {
-                        setupVisible = false
-                    }
-                    try? await Task.sleep(for: .milliseconds(300))
-                    step = .welcome
-                    welcomeVisible = false
-                    try? await Task.sleep(for: .milliseconds(80))
-                    withAnimation(enterSpring) {
-                        welcomeVisible = true
-                    }
-                    try? await Task.sleep(for: .seconds(3))
-                    withAnimation(exitCurve) {
-                        welcomeVisible = false
-                    }
-                    try? await Task.sleep(for: .milliseconds(300))
-                    step = .durationSetup
-                    try? await Task.sleep(for: .milliseconds(80))
-                    withAnimation(enterSpring) {
-                        setupVisible = true
-                    }
-                }
-            } label: {
-                Text("Back")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.white.opacity(0.8))
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 10)
-                    .modifier(GlassChipModifier(cornerRadius: 22))
-            }
-            .buttonStyle(ScaleButtonStyle())
-            .pointerCursor()
         }
         .padding(32)
         .modifier(GlassCardModifier(cornerRadius: 28))
     }
 
-    private func chip(label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.body)
-                .fontWeight(.medium)
-                .monospacedDigit()
-                .foregroundStyle(isSelected ? .black : .white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white)
-                            .shadow(color: .white.opacity(0.15), radius: 8)
-                    } else {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.white.opacity(0.12))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(.white.opacity(0.25), lineWidth: 0.75)
-                            )
-                    }
+    private func presetRow(_ preset: OnboardingPreset) -> some View {
+        Button { handleFinishSetup(preset) } label: {
+            HStack(spacing: 16) {
+                Image(systemName: preset.systemImage)
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
+                    .background(.white.opacity(0.15), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(preset.title)
+                        .font(.body)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+
+                    Text(preset.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.6))
                 }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.4))
+            }
+            .padding(16)
+            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(.white.opacity(0.15), lineWidth: 0.5)
+            )
         }
         .buttonStyle(ScaleButtonStyle())
         .pointerCursor()
